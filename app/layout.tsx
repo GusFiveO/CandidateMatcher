@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import '../styles/global.css';
+
 
 export const metadata: Metadata = {
   title: 'Hono | nextjs',
@@ -12,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className='flex max-w-4/5 justify-center'>{children}</body>
     </html>
   )
 }

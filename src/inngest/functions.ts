@@ -1,12 +1,10 @@
-import { WebClient } from "@slack/web-api"
 import { inngest } from "./client";
 import { sampleData } from "./sample";
-
-const token = process.env.NEXT_PUBLIC_SLACK_TOKEN;
-
-// Initialize
-const slackClient = new WebClient(token);
-
+import db from "../../db/client";
+import { matches } from "../../db/schema";
+import { retrieveSlackResponses, sendSlackMessage } from "./slack";
+import { cancelFeedbacks, SlackMessage, storeFeedbacks } from "./feedback";
+import { generateMatch, storeMatch } from "./match";
 
 
 const getMatch = inngest.createFunction(
@@ -14,33 +12,48 @@ const getMatch = inngest.createFunction(
 	// {cron: "TZ=Europe/Paris */1 * * * *"},
 	{event: "hunting/candidate.match"},
 	async ({step}) => {
-		const minutes = new Date().getMinutes()
-		const index = minutes % 10
-		// console.log(sampleData[index])
-		return {match: sampleData[index]}
+		const match = await step.run("generate-match", async () => {
+			return generateMatch();
+		});
+		const candidate = match.candidate
+
+		const matchInstance = await step.run("store-match", async () => {
+			return await storeMatch(candidate.name, match.analysis);
+		});
+
+		const message = await step.run("send-slack-message", async () => {
+			return await sendSlackMessage({ message: `${candidate.name}` });
+		});
+		if (message.ok) {
+			console.log("message sent")
+		} else {
+			console.log("error sending message")
+		}
+
+		await step.sleep("wait-for-feedbacks", "30s");
+
+		const channelId = message.channel as string	//TODO ADD ERROR HANDLING
+		const messageTs = message.message?.ts as string
+
+		const response = await step.run("retrieve-slack-response", async () => {
+			return await retrieveSlackResponses({channelId, messageTs});
+		});
+		
+		if (!response.ok) {
+			console.error('Failed to retrieve replies:', response.error);
+		}
+		const replies = (response.messages as SlackMessage[])?.slice(1);
+
+		if (!replies || replies.length === 0) {
+			await step.run("cancel-feedback", async () => {
+				await cancelFeedbacks(matchInstance.id);
+			});
+		} else {
+			await step.run("store-feedback", async () => {
+				await storeFeedbacks(replies, matchInstance.id);
+			});
+		}
 	}
 )
 
-const sendSlackMessage = inngest.createFunction(
-	{id: "send-slack-message"},
-	{event: "slack/message.send"},
-	async ({event}) => {
-		const result = await slackClient.chat.postMessage({
-			channel: process.env.NEXT_PUBLIC_SLACK_CLIENT_ID as string,
-			blocks: [
-			  {
-				type: "section",
-				text: {
-				  type: "mrkdwn",
-				  text: `${event.data.message}`,
-				},
-			  },
-			],
-		  });
-	
-		  return result;
-	
-	}
-)
-
-export const functions = [getMatch, sendSlackMessage]
+export const functions = [getMatch]
