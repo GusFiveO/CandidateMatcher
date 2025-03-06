@@ -13,8 +13,7 @@ export const MatchesTable = ({ matches }) => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Candidate Name</TableHead>
+            <TableHead>Name</TableHead>
             <TableHead>Analysis</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Feedbacks</TableHead>
@@ -23,7 +22,6 @@ export const MatchesTable = ({ matches }) => {
         <TableBody>
           {matches.map((match) => (
             <TableRow key={match.id}>
-              <TableCell>{match.id}</TableCell>
               <TableCell>{match.candidateName}</TableCell>
               <TableCell>{match.analysis}</TableCell>
               <TableCell>{match.status}</TableCell>

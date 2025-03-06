@@ -1,6 +1,6 @@
 import db from "../../db/client";
 import { matches } from "../../db/schema/schema";
-import { sampleData } from "./sample";
+import { candidateNames, sampleData } from "./sample";
 import { Mistral } from "@mistralai/mistralai";
 
 export const storeMatch = async (
@@ -14,14 +14,13 @@ export const storeMatch = async (
       .values({ candidateName, analysis, authorId })
       .returning()
   )[0];
-  console.log(match);
   return match;
 };
 
 export const generateMatch = async () => {
   const minutes = new Date().getSeconds();
   const index = minutes % 10;
-  const name = sampleData[index].candidate.name;
+  const name = candidateNames[index];
 
   const apiKey = process.env.NEXT_PUBLIC_MISTRAL_API_KEY;
 
@@ -32,7 +31,7 @@ export const generateMatch = async () => {
     messages: [
       {
         role: "user",
-        content: `provide me a json with a candidate field conataining a name field with the name ${name} and a separated analysis field with a short sentence describig the candidate skills the post they apply is Customer Support @Doctolib`,
+        content: `provide me a json with a candidate field conataining a name field with the name ${name} and a separated analysis field with a short sentence with the candidate skills, the post they apply is Customer Support @Doctolib`,
       },
     ],
     responseFormat: {

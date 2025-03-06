@@ -20,7 +20,6 @@ const LoginPage = () => {
         password,
         callbackURL: "/",
       });
-      console.log(error);
       if (error) {
         throw new Error(error.message || "An error occurred during sign up");
       }

@@ -2,19 +2,11 @@ import { auth } from "@/app/auth";
 import db from "@/db/client";
 import { Hono } from "hono";
 import { handle } from "hono/vercel";
-import { WebClient } from "@slack/web-api";
 import { eq } from "drizzle-orm";
 import { user } from "../../../db/schema/schema";
 import { headers } from "next/headers";
-import { HTTPException } from "hono/http-exception";
 import { matches } from "../../../db/schema/schema";
-import { getCookie } from "hono/cookie";
 
-import { authClient } from "@/lib/auth-client";
-
-// export const runtime = 'edge'
-
-// const app = new Hono().basePath('/api')
 const app = new Hono<{
   Variables: {
     user: typeof auth.$Infer.Session.user | null;
@@ -24,7 +16,6 @@ const app = new Hono<{
 
 app.use("*", async (c, next) => {
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
-  console.log(c.req.raw);
 
   if (!session) {
     c.set("user", null);
@@ -41,29 +32,11 @@ app.on(["POST", "GET"], "/api/auth/*", (c) => {
   return auth.handler(c.req.raw);
 });
 
-app.get("/hello", (c) => {
-  return c.json({
-    message: "Hello from Hono!",
-  });
-});
-
-app.get("/:id/matches", async (context) => {
-  const id = context.req.param("id");
-
+app.get("/matches", async (context) => {
   const session = context.get("session");
 
-  // if (!session) {
-  //   throw new HTTPException(401, { res: errorResponse })
-  // }
-  // const me = await db.query.user.findFirst({
-  //   where: eq(user.id,  session.user.id,)
-  // });
-
-  // if (!me) {
-  //   throw new HTTPException(401, { res: errorResponse })
-  // }
   const myMatches = await db.query.matches.findMany({
-    where: eq(matches.authorId, id),
+    where: eq(matches.authorId, session.userId),
     with: {
       feedbacks: true,
     },
@@ -87,7 +60,6 @@ app.get("/slack/install", async (c) => {
   const me = await db.query.user.findFirst({
     where: eq(user.id, session.user.id),
   });
-  console.log(me);
   if (!me) {
     return c.redirect("/");
   }
@@ -117,8 +89,6 @@ app.get("/slack/install", async (c) => {
 
     const data = await response.json();
 
-    console.log(data);
-    console.log(data.access_token);
     await db
       .update(user)
       .set({
@@ -129,7 +99,6 @@ app.get("/slack/install", async (c) => {
 
     return c.redirect("/");
   } catch (error) {
-    console.error("OAuth error:", error);
     return c.json({ error: "Internal Server Error" }, 500);
   }
 });

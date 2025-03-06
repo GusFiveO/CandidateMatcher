@@ -6,16 +6,12 @@ import { Card, CardContent } from "../../components/ui/card";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { toast, Toaster } from "sonner";
-import { redirect } from "next/navigation";
 
 const SignUpPage = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
-  const promise = authClient.getSession();
-  console.log(promise.then((data) => console.log(data)));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,7 +26,6 @@ const SignUpPage = () => {
         password,
         callbackURL: "/",
       });
-      console.log(error);
       if (error) {
         throw new Error(error.message || "An error occurred during sign up");
       }
