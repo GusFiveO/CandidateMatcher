@@ -6,6 +6,7 @@ import { Card, CardContent } from "../../components/ui/card";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { toast, Toaster } from "sonner";
+import { redirect } from "next/navigation";
 
 const SignUpPage = () => {
   const [name, setName] = useState("");
@@ -13,26 +14,23 @@ const SignUpPage = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       toast("Passwords do not match");
       return;
     }
-    try {
-      const { data, error } = await authClient.signUp.email({
-        email,
-        name,
-        password,
-        callbackURL: "/",
-      });
-      if (error) {
-        throw new Error(error.message || "An error occurred during sign up");
-      }
-
+    const { data, error } = await authClient.signUp.email({
+      email,
+      name,
+      password,
+      callbackURL: "/",
+    });
+    if (error) {
+      toast(error.message || "An unexpected error occurred");
+    } else {
       toast("Sign up successful!");
-    } catch (err) {
-      toast(err.message || "An unexpected error occurred");
+      redirect("/");
     }
   };
 

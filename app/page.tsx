@@ -8,7 +8,10 @@ import LogoutButton from "@/components/LogoutButton";
 import { Card, CardContent } from "@/components/ui/card";
 
 const MatchesPage = () => {
-  const [me, setMe] = useState<Object | null>({});
+  const [me, setMe] = useState<{
+    slack_access_token: string;
+    name: string;
+  } | null>(null);
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -16,7 +19,11 @@ const MatchesPage = () => {
     const getMe = async () => {
       const { data: session, error } = await authClient.getSession();
       if (session && session.user) {
-        setMe(session.user);
+        setMe({
+          name: session.user.name,
+          // @ts-ignore
+          slack_access_token: session.user.slack_access_token,
+        });
       }
     };
 
@@ -29,7 +36,6 @@ const MatchesPage = () => {
             credentials: "same-origin",
           }
         );
-
         if (!response.ok) {
           throw new Error("Failed to fetch matches");
         }

@@ -34,9 +34,16 @@ app.on(["POST", "GET"], "/api/auth/*", (c) => {
 
 app.get("/matches", async (context) => {
   const session = context.get("session");
+  const user = context.get("user");
+
+  if (!session || !user || !user.slack_user_id) {
+    return context.json({
+      matches: [],
+    });
+  }
 
   const myMatches = await db.query.matches.findMany({
-    where: eq(matches.authorId, session.userId),
+    where: eq(matches.authorId, user.slack_user_id),
     with: {
       feedbacks: true,
     },

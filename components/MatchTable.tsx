@@ -1,3 +1,4 @@
+import { Match, MatchWithFeedback } from "@/db/schema/schema";
 import {
   Table,
   TableBody,
@@ -7,7 +8,7 @@ import {
   TableRow,
 } from "./ui/table";
 
-export const MatchesTable = ({ matches }) => {
+export const MatchesTable = ({ matches }: { matches: MatchWithFeedback[] }) => {
   return (
     <div className="flex">
       <Table>

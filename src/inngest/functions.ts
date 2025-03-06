@@ -6,7 +6,7 @@ import { getConnectedUsers } from "./utils";
 
 const periodicMatch = inngest.createFunction(
   { id: "periodic-match" },
-  { cron: "*/1 * * * *" },
+  { cron: "*/5 * * * *" },
   async ({ step }) => {
     const connectedUsers = await step.run("get-connected-users", async () => {
       return getConnectedUsers();
@@ -23,10 +23,11 @@ const periodicMatch = inngest.createFunction(
     const matchInstances = await step.run("store-matches", async () => {
       const matchInstances = [];
       for (const user of connectedUsers) {
+        if (!user.slack_user_id) continue;
         const matchInstance = await storeMatch(
           candidate.name,
           match.analysis,
-          user.id
+          user.slack_user_id
         );
         matchInstances.push(matchInstance);
       }
@@ -46,7 +47,7 @@ const periodicMatch = inngest.createFunction(
       return messages;
     });
 
-    await step.sleep("wait-for-feedbacks", "30s");
+    await step.sleep("wait-for-feedbacks", "2m");
 
     const responses = await step.run("retrieve-slack-response", async () => {
       const responses = [];

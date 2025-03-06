@@ -13,7 +13,6 @@ export const storeFeedbacks = async (
   replies: SlackMessage[],
   matchId: number
 ) => {
-  console.log(replies);
   for (const replie of replies) {
     await db
       .insert(feedbacks)
@@ -26,7 +25,6 @@ export const storeFeedbacks = async (
 };
 
 export const cancelFeedbacks = async (matchId: number) => {
-  console.log("cancel");
   await db
     .update(matches)
     .set({ status: "canceled" })

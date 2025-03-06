@@ -8,6 +8,7 @@ import {
   timestamp,
   boolean,
 } from "drizzle-orm/pg-core";
+import { InferResultType } from "./helper-types";
 
 // export const candidates = pgTable('candidates', {
 // 	id: serial().primaryKey(),
@@ -50,6 +51,11 @@ export const feedbacksRelations = relations(feedbacks, ({ one }) => ({
     references: [matches.id],
   }),
 }));
+
+export type MatchWithFeedback = InferResultType<"matches", { feedbacks: true }>;
+
+export type Match = typeof matches.$inferInsert;
+export type Feedback = typeof feedbacks.$inferInsert;
 
 // export const matchesRelations = relations(matches, ({one}) => ({
 // 	matchingCandidate: one(candidates, {

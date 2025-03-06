@@ -8,6 +8,7 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@better-fetch/fetch": "^1.1.15",
     "@mistralai/mistralai": "^1.5.0",
     "@neondatabase/serverless": "^0.10.4",
     "@radix-ui/react-slot": "^1.1.2",
