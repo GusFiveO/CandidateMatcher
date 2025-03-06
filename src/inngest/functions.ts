@@ -1,59 +1,84 @@
 import { inngest } from "./client";
-import { sampleData } from "./sample";
-import db from "../../db/client";
-import { matches } from "../../db/schema";
 import { retrieveSlackResponses, sendSlackMessage } from "./slack";
 import { cancelFeedbacks, SlackMessage, storeFeedbacks } from "./feedback";
 import { generateMatch, storeMatch } from "./match";
+import { getConnectedUsers } from "./utils";
 
+const periodicMatch = inngest.createFunction(
+  { id: "periodic-match" },
+  // {cron: "*/1 * * * *"},
+  { event: "hunting/periodic.match" },
+  async ({ step }) => {
+    const connectedUsers = await step.run("get-connected-users", async () => {
+      return getConnectedUsers();
+    });
 
-const getMatch = inngest.createFunction(
-	{id: "create-match"},
-	// {cron: "TZ=Europe/Paris */1 * * * *"},
-	{event: "hunting/candidate.match"},
-	async ({step}) => {
-		const match = await step.run("generate-match", async () => {
-			return generateMatch();
-		});
-		const candidate = match.candidate
+    if (connectedUsers.length === 0) return;
 
-		const matchInstance = await step.run("store-match", async () => {
-			return await storeMatch(candidate.name, match.analysis);
-		});
+    const match = await step.run("generate-match", async () => {
+      return generateMatch();
+    });
 
-		const message = await step.run("send-slack-message", async () => {
-			return await sendSlackMessage({ message: `${candidate.name}` });
-		});
-		if (message.ok) {
-			console.log("message sent")
-		} else {
-			console.log("error sending message")
-		}
+    const candidate = match.candidate;
 
-		await step.sleep("wait-for-feedbacks", "30s");
+    const matchInstances = await step.run("store-matches", async () => {
+      const matchInstances = [];
+      for (const user of connectedUsers) {
+        const matchInstance = await storeMatch(
+          candidate.name,
+          match.analysis,
+          user.id
+        );
+        matchInstances.push(matchInstance);
+      }
+      return matchInstances;
+    });
 
-		const channelId = message.channel as string	//TODO ADD ERROR HANDLING
-		const messageTs = message.message?.ts as string
+    const messages = await step.run("send-slack-message", async () => {
+      const messages = [];
+      for (const user of connectedUsers) {
+        const newMessage = await sendSlackMessage(
+          `${candidate.name} : ${match.analysis}`,
+          user.slack_user_id!,
+          user.slack_access_token!
+        );
+        messages.push(newMessage);
+      }
+      return messages;
+    });
 
-		const response = await step.run("retrieve-slack-response", async () => {
-			return await retrieveSlackResponses({channelId, messageTs});
-		});
-		
-		if (!response.ok) {
-			console.error('Failed to retrieve replies:', response.error);
-		}
-		const replies = (response.messages as SlackMessage[])?.slice(1);
+    await step.sleep("wait-for-feedbacks", "20s");
 
-		if (!replies || replies.length === 0) {
-			await step.run("cancel-feedback", async () => {
-				await cancelFeedbacks(matchInstance.id);
-			});
-		} else {
-			await step.run("store-feedback", async () => {
-				await storeFeedbacks(replies, matchInstance.id);
-			});
-		}
-	}
-)
+    const responses = await step.run("retrieve-slack-response", async () => {
+      const responses = [];
+      for (const [index, message] of messages.entries()) {
+        const channelId = message.channel as string; //TODO ADD ERROR HANDLING
+        const messageTs = message.message?.ts as string;
+        const response = await retrieveSlackResponses(
+          channelId,
+          messageTs,
+          connectedUsers[index].slack_access_token!
+        );
+        responses.push(response);
+      }
+      return responses;
+    });
 
-export const functions = [getMatch]
+    console.log("responses", responses);
+    for (const [index, response] of responses.entries()) {
+      const replies = (response.messages as SlackMessage[])?.slice(1);
+      console.log("replies", replies);
+      if (!replies || replies.length === 0) {
+        await step.run("cancel-feedback", async () => {
+          await cancelFeedbacks(matchInstances[index].id);
+        });
+      } else {
+        await step.run("store-feedback", async () => {
+          await storeFeedbacks(replies, matchInstances[index].id);
+        });
+      }
+    }
+  }
+);
+
+export const functions = [periodicMatch];

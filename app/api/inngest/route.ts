@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { handle } from "hono/vercel";
 import { serve } from "inngest/hono";
 import { inngest } from "../../../src/inngest/client";
-import { functions } from "../../../src/inngest/functions"
+import { functions } from "../../../src/inngest/functions";
 
 const app = new Hono();
 
@@ -11,10 +11,10 @@ app.on(
   "/api/inngest",
   serve({
     client: inngest,
-	functions,
+    functions,
   })
 );
 
-export const GET = handle(app)
-export const POST = handle(app)
-export const PUT = handle(app)
+export const GET = handle(app);
+export const POST = handle(app);
+export const PUT = handle(app);

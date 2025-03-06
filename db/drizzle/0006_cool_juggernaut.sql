@@ -1,0 +1,1 @@
+ALTER TABLE "matches" ALTER COLUMN "authorId" SET DATA TYPE text;
