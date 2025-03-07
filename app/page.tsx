@@ -66,7 +66,8 @@ const MatchesPage = () => {
               <h1 className="font-extrabold mb-5 text-2xl">
                 INSTALL THE BOT TO START MONITORING YOUR MATCHES
               </h1>
-              <a href="https://slack.com/oauth/v2/authorize?client_id=2754441662130.8550992065332&scope=channels:history,channels:read,chat:write,chat:write.public,groups:history,im:history,im:write,mpim:history,users.profile:read,users:read&user_scope=">
+              {/* <a href="https://slack.com/oauth/v2/authorize?client_id=2754441662130.8550992065332&scope=channels:history,channels:read,chat:write,chat:write.public,groups:history,im:history,im:write,mpim:history,users.profile:read,users:read&user_scope="> */}
+              <a href={process.env.NEXT_PUBLIC_SLACK_APP_INSTALL_LINK}>
                 <img
                   alt="Add to Slack"
                   height="40"

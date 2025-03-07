@@ -23,12 +23,19 @@ This application manages the workflow of collecting recruiter feedback on AI-gen
 - Slack app with necessary permissions
 
 ### Slack App
+
 create a Slack app at https://api.slack.com/apps
 
 #### Slack app redirect uri
+
 Use https://redirectmeto.com/ as redirect uri prefix to be able to use use http://localhost:3000/api/slack/install as redirect uri with HTTPS
 
+#### Slack app installation link
+
+Available in the Manage distribution section of your app at https://app.slack.com/
+
 #### make sure that your slack app have the following scopes
+
 - channels:history
 - channels:read
 - chat:write
@@ -39,6 +46,7 @@ Use https://redirectmeto.com/ as redirect uri prefix to be able to use use http:
 - mpim:history
 - users.profile:read
 - users:read
+
 ### Environment Variables
 
 Create a `.env` file in the root of your project and add the following environment variables:
@@ -49,10 +57,10 @@ NEXT_PUBLIC_API_URL=http://localhost:3000/api
 NEXT_PUBLIC_SLACK_CLIENT_ID=your_slack_client_id
 NEXT_PUBLIC_SLACK_CLIENT_SECRET=your_slack_client_secret
 NEXT_PUBLIC_SLACK_REDIRECT_URI=https://redirectmeto.com/http://localhost:3000/api/slack/install
+NEXT_PUBLIC_SLACK_APP_INSTALL_LINK=your_slack_app_installation_link
 NEXT_PUBLIC_MISTRAL_API_KEY=your_mistral_api_key
 ```
 
-  
 #### free mistral api key available at https://console.mistral.ai/
 
 ### Installation
