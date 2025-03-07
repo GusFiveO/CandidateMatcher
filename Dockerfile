@@ -11,4 +11,4 @@ COPY . .
 EXPOSE 3000
 EXPOSE 8288
 
-CMD ["npm", "run", "dev"]
+CMD ["npx", "turbo", "dev"]
