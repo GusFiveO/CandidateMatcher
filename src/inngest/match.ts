@@ -21,7 +21,6 @@ export const generateMatch = async () => {
   const minutes = new Date().getMinutes();
   const seed = minutes;
   const index = Math.floor(seed / 5) % 10;
-  console.log(index);
   const name = candidateNames[index];
 
   const apiKey = process.env.NEXT_PUBLIC_MISTRAL_API_KEY;

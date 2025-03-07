@@ -1,7 +1,7 @@
 {
   "name": "app",
   "scripts": {
-    "dev": "next dev --turbo",
+    "dev": "next dev --turbo & npx inngest-cli@latest dev  && fg",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
