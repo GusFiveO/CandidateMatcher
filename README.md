@@ -64,7 +64,7 @@ docker compose up --build
 Access the Application:
 
 Open your browser and navigate to http://localhost:3000.
-Follow the on-screen instructions to install the Slack app and log in.
+Follow the on-screen instructions to log in and install the Slack app.
 
 Open your browser and navigate to http://localhost:8288 to access inngest dev dashboard.
 
